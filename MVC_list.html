@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <div id="app">
+
+  </div>
+  <script>
+    function CounterModel() {
+      let count = 0
+
+      const callbacks = []
+
+      Object.defineProperty(this, 'count', {
+        get() {
+          return count
+        },
+        set(val) { // 触发响应式
+          count = val
+          callbacks.forEach(callback => callback(count))
+        }
+      })
+
+      this.register = function (callback) {
+        callbacks.push(callback)
+      }
+    }
+
+    function CounterView(el = document.getElementById('app')) {
+      const incrementHandlers = []
+      const decrementHandlers = []
+
+      const screen = document.createElement('div')
+
+      const increment = document.createElement('button')
+      increment.innerHTML = 'increment'
+      increment.onclick = () => {
+        incrementHandlers.forEach(callback => callback())
+      }
+
+      const decrement = document.createElement('button')
+      decrement.innerHTML = 'decrement'
+      decrement.onclick = () => {
+        decrementHandlers.forEach(callback => callback())
+      }
+
+      this.onIncrement = function (callback) {
+        incrementHandlers.push(callback)
+      }
+      this.onDecrement = function (callback) {
+        decrementHandlers.push(callback)
+      }
+      this.render = function (value) {
+        screen.innerHTML = +value
+        el.innerHTML = ''
+        const elements = [screen, increment, decrement]
+        elements.forEach(dom => el.appendChild(dom))
+      }
+    }
+
+    function CounterController(model) {
+      this.increment = function () {
+        model.count += 1
+      }
+      this.decrement = function () {
+        model.count -= 1
+      }
+    }
+
+    const model = new CounterModel()
+    console.log(model.count)
+    const view = new CounterView()
+
+    model.register(view.render)
+    const controller = new CounterController(model)
+    view.onIncrement(controller.increment)
+    view.onDecrement(controller.decrement)
+
+    view.render('0')
+
+
+  </script>
+</body>
+
+</html>
